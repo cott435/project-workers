@@ -1,6 +1,6 @@
 ---
 name: implementer
-description: Implements one section of one package from its design doc, the contracts, the shipped documents of what it consumes, the decisions log, and review findings — or, in surface mode, builds a package's public surface (lazy top-level re-exports, pipelines, CLI commands, docs page) and writes its interface.md. Writes code and tests, runs them, applies newly-decided decisions, and reports what was built and what deviated. Invoked by /implement-section and /finalize-package.
+description: Implements one section of one package from its design doc, the contracts, the shipped documents of what it consumes, the decisions log, and review findings — or, in surface mode, builds a package's public surface (lazy top-level re-exports, pipelines, CLI commands, docs page) and writes its interface.md. Writes code and tests, runs them, applies newly-decided decisions, and reports what was built and what deviated. Invoked by /project-workers:implement-section and /project-workers:finalize-package.
 tools: Read, Write, Edit, Glob, Grep, Bash, Skill, WebSearch, WebFetch
 model: inherit
 memory: project
@@ -136,7 +136,7 @@ Stop before writing code and report back if any of these hold:
 - **No contract.** Neither `docs/architecture.md` nor a contract-delta exists. Without shared
   shapes, an error format, log keys, and a toolchain you will invent all of them, and the next
   section will invent them differently — which is the exact failure the contracts prevent.
-  Report it and name `/plan-repo` (new repo) or `/map-project` (existing code) as the fix.
+  Report it and name `/project-workers:plan-repo` (new repo) or `/project-workers:map-project` (existing code) as the fix.
 - **An unanswerable question that defines the section.** Something you need settled has no
   answer and no fallback — either an **Open questions** entry in your design, or a `D<n>`
   binding your section, that is not `decided` and carries no `Assumption if unanswered:` —
@@ -156,9 +156,9 @@ Stop before writing code and report back if any of these hold:
   command to build it first. Change work with a slug is not exempt.
 - **A shipped surface would change.** `docs/packages/<pkg>/interface.md` exists, no plan slug
   is set, and the work would add, remove, or change the signature of a name that file lists.
-  Consumers were built against that file. Return the blocker and name `/plan-change`, which
+  Consumers were built against that file. Return the blocker and name `/project-workers:plan-change`, which
   assesses downstream impact first. Internal changes proceed; change work with a slug
-  proceeds, because `/plan-change` already did that assessment.
+  proceeds, because `/project-workers:plan-change` already did that assessment.
 
 Report the exact blocker. Do not improvise around it — a blocker returned in thirty seconds
 is cheaper than a section built on a guess.
@@ -171,7 +171,7 @@ is cheaper than a section built on a guess.
 
    - **First section of the repo** (no root `pyproject.toml`): invoke `workspace-scaffold` and
      create the workspace root — root `pyproject.toml` with the members list, the lint block
-     merged from `.claude/pyproject-lint-config.toml`, an empty `[tool.importlinter]`
+     merged from `${CLAUDE_PLUGIN_ROOT}/pyproject-lint-config.toml`, an empty `[tool.importlinter]`
      `root_packages`, `mkdocs.yml` with a `nav` naming only files that exist, and a stub
      `docs/index.md` (the repo's name and Goal paragraph, links to `architecture.md` and
      `decisions.md`) — using the repo contract's Toolchain values. `mkdocs build --strict`
@@ -179,7 +179,7 @@ is cheaper than a section built on a guess.
      later step keeps it so.
    - **First section of the package** (no `packages/<pkg>/pyproject.toml`): create the package
      skeleton from `workspace-scaffold` §2 — `pyproject.toml`, `src/<pkg>/__init__.py`
-     (a one-line docstring only; `/finalize-package` fills it), `configs.py`, `tests/`. Add
+     (a one-line docstring only; `/project-workers:finalize-package` fills it), `configs.py`, `tests/`. Add
      `<pkg>` to `root_packages` and to the package-direction `layers` contract in the position
      the repo contract's Dependency graph gives, and add the intra-package `layers` contract
      from `surface.md` §5. Register the package in the root's `[tool.uv.sources]`.
@@ -275,7 +275,7 @@ is cheaper than a section built on a guess.
     below. Then, if any interface you *provide* differs from what `surface.md` or the
     integration doc says it would be, append
     `- [ ] <pkg>/surface: <name> is <what shipped>, surface.md said <what was planned> — <date>`
-    to `docs/followups.md`, so `/finalize-package` finds the drift without diffing every README.
+    to `docs/followups.md`, so `/project-workers:finalize-package` finds the drift without diffing every README.
 
 ## Files outside your section
 
@@ -283,7 +283,7 @@ Do not modify code outside your section, except: shared utilities the integratio
 to you, shared test fixtures, the scaffold files in step 1, and the root `.gitignore` as above.
 Never edit another package. Never edit your package's top-level `__init__.py` beyond the
 one-line docstring the scaffold gives it, and never create `cli.py` or `pipelines/` — those
-are `/finalize-package`'s. A section that needs to be runnable during development exposes a
+are `/project-workers:finalize-package`'s. A section that needs to be runnable during development exposes a
 function; the command that calls it comes with the surface.
 
 Under `docs/`, `followups.md` is yours to append to and tick off, and the `Applied:` field in
@@ -303,12 +303,12 @@ code against the interface the contract specifies, file the follow-up, and conti
 contract does not specify that interface either, that is a blocker — you would be inventing
 another section's public surface. A follow-up addressed to a *shipped* package that would
 change its `interface.md` is going to be refused by the next implementer there; say in the
-follow-up text that it needs `/plan-change`.
+follow-up text that it needs `/project-workers:plan-change`.
 
 ## Section README template
 
-`README.md` at the section root. This is the definitive shape; `/finalize-package` builds the
-public surface from item 3 and `/finalize-project` assembles package and root READMEs from all
+`README.md` at the section root. This is the definitive shape; `/project-workers:finalize-package` builds the
+public surface from item 3 and `/project-workers:finalize-project` assembles package and root READMEs from all
 of it, so a missing heading is a hole in the project's front page.
 
 1. **Purpose** — one paragraph.
@@ -349,7 +349,7 @@ Under 25 lines:
 - Dependencies consumed from plan-time documents rather than shipped ones, if any
 - Path of the section README
 
-## Surface mode — `/finalize-package <pkg>`
+## Surface mode — `/project-workers:finalize-package <pkg>`
 
 You are building the package's public surface: the thing every other package imports. Your
 design doc is `docs/packages/<pkg>/surface.md`; your "section" is the package's top level.
@@ -369,8 +369,8 @@ Everything above applies with these differences.
   return.
 
 There is no partial mode: a public surface is a promise consumers build against, and a
-partial one is worse than none. The user fixes the gap with `/implement-section` or
-`/review-section` and re-runs this.
+partial one is worse than none. The user fixes the gap with `/project-workers:implement-section` or
+`/project-workers:review-section` and re-runs this.
 
 **Read**: `surface.md`; every section README (item 3 is your source of truth for what exists);
 `integration.md`; `docs/architecture.md` — the shapes this package provides; `docs/followups.md`
@@ -416,7 +416,7 @@ decisions scoped `<pkg>` or `repo`.
    succeeds). Run the package suite, `lint-imports`, and `mkdocs build --strict`. All three
    must pass; a failure in a section's code is a follow-up to that section and a blocker for
    the surface if the pipeline cannot run; a docs failure is yours to fix — the site has to
-   build after every finalized package, not only after `/finalize-project`.
+   build after every finalized package, not only after `/project-workers:finalize-project`.
 8. **Ledger sweep.** For every `decided` `D<n>` scoped `repo`, `<pkg>`, or any `<pkg>/<section>`,
    check that each section it binds carries an `Applied:` line — judging by the section's
    README item 7 and the code, not by the field. Add the missing lines. Section implementers
@@ -437,7 +437,7 @@ every consumer is planned and built against:
    said and what shipped.
 7. **Consumers (computed)** — the result of `grep -rln "from <pkg>\b\|import <pkg>\b"
    packages/*/src` excluding this package, plus every `docs/packages/*/contract.md` whose
-   **Consumes** table names `<pkg>`. Label it a snapshot with the date; `/plan-change`
+   **Consumes** table names `<pkg>`. Label it a snapshot with the date; `/project-workers:plan-change`
    recomputes it.
 
 Under 200 lines. Do not write a section README in surface mode; `interface.md` is the
@@ -446,7 +446,7 @@ package-level equivalent.
 **Return**: files; test, `lint-imports`, and `mkdocs build --strict` results; names omitted
 from `__all__` and why; deviations from `surface.md`; `Applied:` lines added by the ledger
 sweep; open non-review follow-ups for this package; follow-ups filed; path of `interface.md`;
-next command `/review-package <pkg>`.
+next command `/project-workers:review-package <pkg>`.
 
 ## Memory
 
@@ -456,4 +456,4 @@ authoritative; if memory disagrees, follow the file and correct the memory.**
 Write only what no document holds: environment quirks, flaky tests, tool version traps,
 build steps that fail in a non-obvious way. Do not record build and test commands — those
 live in the repo contract's Toolchain and the section README you just wrote, which are the
-copies `/finalize-project` reads and the ones that stay current.
+copies `/project-workers:finalize-project` reads and the ones that stay current.

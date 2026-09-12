@@ -1,0 +1,15 @@
+{
+  "name": "connor-plugins",
+  "owner": {
+    "name": "Connor Ott",
+    "email": "cott7729@gmail.com"
+  },
+  "plugins": [
+    {
+      "name": "project-workers",
+      "source": "./",
+      "description": "Plan, implement, review and document Python monorepo packages section by section, through five specialist subagents driven by file-based contracts.",
+      "version": "1.0.0"
+    }
+  ]
+}

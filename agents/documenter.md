@@ -1,6 +1,6 @@
 ---
 name: documenter
-description: Assembles package-level and repo-level documentation from the shipped documents — each package's interface.md and section READMEs, the repo contract, and the decisions ledger. Writes the package READMEs, the docs-site API pages, and the root README, and reports everything still open. Invoked by /finalize-project.
+description: Assembles package-level and repo-level documentation from the shipped documents — each package's interface.md and section READMEs, the repo contract, and the decisions ledger. Writes the package READMEs, the docs-site API pages, and the root README, and reports everything still open. Invoked by /project-workers:finalize-project.
 tools: Read, Grep, Glob, Bash, Write, Edit
 model: inherit
 memory: project

@@ -681,7 +681,7 @@ consumer that only wants `Lot` must not load pandas for `load_bars`. PEP 562's m
 `TYPE_CHECKING` block keeps static analyzers, IDEs, and the docs build seeing ordinary imports.
 
 ```python
-# src/data/__init__.py — written by /finalize-package from docs/packages/data/surface.md
+# src/data/__init__.py — written by /project-workers:finalize-package from docs/packages/data/surface.md
 """Market data: download, clean, audit, and store bars.
 
 Public surface of the ``data`` package. Consumers import from here and nowhere deeper.

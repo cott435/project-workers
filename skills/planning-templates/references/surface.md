@@ -1,7 +1,7 @@
 # `docs/packages/<pkg>/surface.md` — the design of the public surface
 
 Written at package scope **after** unification, because only then are the section interfaces
-concrete. It is the design doc `/finalize-package` builds from, and the plan-time twin of
+concrete. It is the design doc `/project-workers:finalize-package` builds from, and the plan-time twin of
 `interface.md`. Under 150 lines; tables over prose.
 
 **The selection rule.** A name goes on the surface when something outside the package needs
@@ -40,4 +40,4 @@ consumers are built against and what a change has to preserve.
 **On an adopted package** (existing code): transcribe what the top-level `__init__.py`,
 entry points, and CLI actually expose, and mark the file *transcribed*; if the top-level
 `__init__.py` is empty, list what the code appears to intend as public, mark the file
-*inferred*, and note that the package is not shipped until `/finalize-package` runs.
+*inferred*, and note that the package is not shipped until `/project-workers:finalize-package` runs.

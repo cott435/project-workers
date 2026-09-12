@@ -13,8 +13,9 @@ Build the public surface of package **$pkg** — **surface mode**.
 
 > **Guard.** If you can see earlier conversation turns, or you have an `AskUserQuestion` tool, you are
 > running in the main conversation rather than as the `implementer` subagent — the agent is not
-> registered, usually because `.claude/agents/` was added after Claude Code started. Stop, tell the
-> user to restart Claude Code (verify with `/agents`) and re-run. Do not build in the main thread.
+> registered, usually because the project-workers plugin was installed or updated after Claude
+> Code started. Stop, tell the user to run `/reload-plugins` (or restart Claude Code),
+> verify with `/agents`, and re-run. Do not build in the main thread.
 
 If `$pkg` reached you unsubstituted, take the first token of `$ARGUMENTS`.
 
@@ -23,8 +24,8 @@ If `$pkg` reached you unsubstituted, take the first token of `$ARGUMENTS`.
 Sections are built one at a time and each publishes only to its siblings. The package as a
 whole publishes once, here, after every section exists: what consumers may import, the
 pipelines that run the sections in order, and the scripts that drive those pipelines. The
-document this step writes, `interface.md`, is what `/plan-package` hands the next package's
-designers and what `/implement-section` in that package codes against. Until it exists, the
+document this step writes, `interface.md`, is what `/project-workers:plan-package` hands the next package's
+designers and what `/project-workers:implement-section` in that package codes against. Until it exists, the
 package is not shipped.
 
 ## Preconditions
@@ -33,7 +34,7 @@ Return a blocker naming what is missing if any of these fails. Run the check scr
 it prints the table your **Surface mode** preconditions describe:
 
 ```
-python3 ${CLAUDE_PROJECT_DIR}/.claude/skills/status/scripts/status.py $pkg
+python3 ${CLAUDE_PLUGIN_ROOT}/skills/status/scripts/status.py $pkg
 ```
 
 Then confirm: `contract.md` and `surface.md` exist; every section in the Sections table has
@@ -73,7 +74,7 @@ On a single-package repo the code paths drop the `packages/$pkg/` prefix.
    **Consumers** snapshot.
 5. Tick off the `$pkg/surface` follow-ups you addressed; file follow-ups to sections for any
    name `surface.md` expected that no README provides.
-6. Return your surface-mode summary, ending with the next command: `/review-package $pkg`.
+6. Return your surface-mode summary, ending with the next command: `/project-workers:review-package $pkg`.
 
 ## Constraints
 

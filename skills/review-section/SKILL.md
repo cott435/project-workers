@@ -14,8 +14,9 @@ Plan slug (empty for canonical work): **$plan**
 
 > **Guard.** If you can see earlier conversation turns, or you have an `AskUserQuestion` tool, you are
 > running in the main conversation rather than as the `reviewer` subagent — the agent is not
-> registered, usually because `.claude/agents/` was added after Claude Code started. Stop, tell the
-> user to restart Claude Code (verify with `/agents`) and re-run.
+> registered, usually because the project-workers plugin was installed or updated after Claude
+> Code started. Stop, tell the user to run `/reload-plugins` (or restart Claude Code),
+> verify with `/agents`, and re-run.
 
 If `$section` reached you unsubstituted, parse the section and optional plan slug from
 `$ARGUMENTS` — first token and second token.
@@ -25,7 +26,7 @@ If `$section` reached you unsubstituted, parse the section and optional plan slu
 `$section` is `<pkg>/<name>`; split on the `/` into `$pkg` and `$name`. With no `/`, use the
 sole row of the Packages table in `docs/architecture.md` as `$pkg`, or return a blocker asking
 for the qualified name if there is more than one. If `$name` is `surface`, stop and name
-`/review-package $pkg`.
+`/project-workers:review-package $pkg`.
 
 ## Paths
 
@@ -56,7 +57,7 @@ checked and why.
    another package — trusts the contract.
 3. Write your report to the path above.
 4. Append every CRITICAL finding to `docs/followups.md` addressed to `$pkg/$name`, so the next
-   `/implement-section $pkg/$name` picks them up without anything passing through chat.
+   `/project-workers:implement-section $pkg/$name` picks them up without anything passing through chat.
 5. Return your summary.
 
 Change nothing but your report and `docs/followups.md`.

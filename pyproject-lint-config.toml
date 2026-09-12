@@ -1,0 +1,50 @@
+# Merge these blocks into the ROOT pyproject.toml (the workspace root in a multi-package repo).
+#
+# They belong here rather than in a skill: this is the configuration that actually enforces
+# the hard limits in `project-structure` §2, and a copy of it living in a skill would be one
+# more thing to keep in sync with the real thing. The skill states the numbers; this enforces
+# them; `ruff check` is the gate. Package-level pyproject.toml files carry none of this —
+# ruff and pylint resolve the nearest config upward, so the root covers every package.
+
+[tool.ruff]
+line-length = 88
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "C901", "PLR0913", "PLR0915", "S", "D"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"        # python-style-guide: docstrings on everything, Google style
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S101", "D"]   # asserts and undocumented tests are fine
+"**/tests/**" = ["S101", "D"]
+"scripts/**" = ["D"]
+"**/scripts/**" = ["D"]
+
+[tool.ruff.lint.mccabe]
+max-complexity = 10          # project-structure §2 hard limit
+
+[tool.ruff.lint.pylint]
+max-args = 5                 # project-structure §2 hard limit
+max-statements = 50          # project-structure §2 hard limit
+
+[tool.pylint.format]
+max-module-lines = 1000      # project-structure §2 hard limit
+
+[tool.pylint.design]
+max-public-methods = 20      # project-structure §2 hard limit
+
+# Soft limits (module 400 lines, function 30 statements, complexity 8, class 200 lines,
+# 12 public methods, 8 modules per directory) are deliberately not enforced here. They are
+# the point at which you plan a split, which is a judgment the reviewer makes, not a build
+# failure.
+#
+# Dependency direction is enforced separately by import-linter. Its block is repo-specific —
+# the package order comes from docs/architecture.md — so it is not here; `workspace-scaffold`
+# §3 gives the shape and the scaffold step writes it.
+#
+# Run in CI and in a PostToolUse hook:
+#   uv run ruff check && uv run ruff format --check
+#   uv run pylint --disable=all --enable=C0302,R0904 packages/*/src
+#   uv run lint-imports
+#   uv run mkdocs build --strict

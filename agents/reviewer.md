@@ -1,6 +1,6 @@
 ---
 name: reviewer
-description: Reviews one section against its design doc and the contracts, or one package's public surface against its surface.md plus the package-level checks (import contracts, __all__ vs interface.md vs READMEs, repo shapes realized). Also checks correctness, security, tests, docstrings, and function shape. Writes findings to docs/reviews/ and files critical ones into docs/followups.md. Invoked by /review-section and /review-package.
+description: Reviews one section against its design doc and the contracts, or one package's public surface against its surface.md plus the package-level checks (import contracts, __all__ vs interface.md vs READMEs, repo shapes realized). Also checks correctness, security, tests, docstrings, and function shape. Writes findings to docs/reviews/ and files critical ones into docs/followups.md. Invoked by /project-workers:review-section and /project-workers:review-package.
 tools: Read, Grep, Glob, Bash, Skill, Write, Edit
 model: inherit
 memory: project
@@ -86,9 +86,9 @@ ledger may say `Sections:` instead of `Scope:`; read it the same way.
    backticks, when the target has a page. If the Toolchain names a docs build command, run it
    strict and report failures.
 
-## Package review checklist — `/review-package`
+## Package review checklist — `/project-workers:review-package`
 
-The scope is the surface `/finalize-package` built plus the package as a whole. In order:
+The scope is the surface `/project-workers:finalize-package` built plus the package as a whole. In order:
 
 1. **Surface conformance** — `src/<pkg>/__init__.py`, `pipelines/`, and `cli.py` match
    `surface.md`: the same public names, the stated pipeline signatures and step order, the
@@ -108,7 +108,7 @@ The scope is the surface `/finalize-package` built plus the package as a whole. 
    carries this package in `root_packages`, in the package-direction `layers` contract, its
    `forbidden` contract, and its intra-package `layers` contract. A missing contract is a
    finding even if the imports happen to be clean today. `mkdocs build --strict` passes with
-   `docs/api/<pkg>.md` in the nav — after `/finalize-package` the site builds; a failure is
+   `docs/api/<pkg>.md` in the nav — after `/project-workers:finalize-package` the site builds; a failure is
    CRITICAL, not expected, and never someone else's job.
 5. **Pipelines and commands run** — the package suite passes including the end-to-end
    pipeline tests and the CLI invocation tests; each pipeline's failure behavior matches
@@ -146,8 +146,8 @@ Findings only — no praise, no restating what the code does. Cite `file:line` f
 There is no cap on the report; it is a file, and the cost of a long file is nothing compared
 to a dropped finding. Do cap what you put in your **return message** at 40 lines.
 
-Then append every CRITICAL finding to `docs/followups.md`, so the next `/implement-section`
-or `/finalize-package` picks it up without the user relaying anything:
+Then append every CRITICAL finding to `docs/followups.md`, so the next `/project-workers:implement-section`
+or `/project-workers:finalize-package` picks it up without the user relaying anything:
 
 ```
 - [ ] <pkg>/<section>: <finding, one line> — review <date>, see docs/reviews/<date>-<pkg>-<section>.md

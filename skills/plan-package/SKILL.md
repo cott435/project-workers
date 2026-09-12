@@ -1,6 +1,6 @@
 ---
 name: plan-package
-description: Plan one package of a repo that /plan-repo has already contracted. Writes the package contract - sections, section interfaces, pipelines - runs parallel section designs, reconciles them into integration.md, and designs the public surface in surface.md. Reads the shipped interface.md of every package this one depends on.
+description: Plan one package of a repo that /project-workers:plan-repo has already contracted. Writes the package contract - sections, section interfaces, pipelines - runs parallel section designs, reconciles them into integration.md, and designs the public surface in surface.md. Reads the shipped interface.md of every package this one depends on.
 argument-hint: "<pkg> [package brief, or path to a file containing it]"
 arguments: [pkg]
 context: fork
@@ -13,8 +13,9 @@ Plan package **$pkg** at **package scope**.
 
 > **Guard.** If you can see earlier conversation turns, or you have an `AskUserQuestion` tool, you are
 > running in the main conversation rather than as the `architect` subagent — the agent is not
-> registered, usually because `.claude/agents/` was added after Claude Code started. Stop, tell the
-> user to restart Claude Code (verify with `/agents`) and re-run. Do not plan in the main thread.
+> registered, usually because the project-workers plugin was installed or updated after Claude
+> Code started. Stop, tell the user to run `/reload-plugins` (or restart Claude Code),
+> verify with `/agents`, and re-run. Do not plan in the main thread.
 
 If `$pkg` reached you unsubstituted — literally the text `$pkg` — take the first token of
 `$ARGUMENTS` as the package. Everything after the first token is the package brief: inline
@@ -23,7 +24,7 @@ text, or a path to a file holding it. It may be empty.
 ## Preconditions
 
 `docs/architecture.md` must exist and its Packages table must have a row for `$pkg`. If not,
-return a blocker naming `/plan-repo` — a package planned without the repo contract will
+return a blocker naming `/project-workers:plan-repo` — a package planned without the repo contract will
 invent its own shapes and conventions, and the next package will invent them differently.
 
 ## What you read before anything else
@@ -42,7 +43,7 @@ invent its own shapes and conventions, and the next package will invent them dif
 ## Steps
 
 1. **Persist the brief** to `docs/packages/$pkg/brief.md` if one was given — inline text
-   verbatim, a path's contents copied — so a re-run as `/plan-package $pkg` with no brief
+   verbatim, a path's contents copied — so a re-run as `/project-workers:plan-package $pkg` with no brief
    finds it. Survey the package directory if it exists and write
    `docs/packages/$pkg/assessment.md`; on a greenfield package there is nothing to assess.
 
@@ -52,7 +53,7 @@ invent its own shapes and conventions, and the next package will invent them dif
 3. **Interview rule.** Section boundaries the brief and contract do not settle, a candidate
    skill with no section, a section with no skill, a pipeline whose ordering is ambiguous, a
    provisional upstream name you need settled. Check the ledger; stub anything unasked tagged
-   `Raised by: /plan-package $pkg (interview)` and **stop** with the stop message. Otherwise
+   `Raised by: /project-workers:plan-package $pkg (interview)` and **stop** with the stop message. Otherwise
    proceed.
 
 4. **Package contract.** Invoke `planning-templates`, read `references/package-contract.md`,
@@ -96,11 +97,11 @@ invent its own shapes and conventions, and the next package will invent them dif
    binds, or `$pkg` when it is package-wide.
 
 9. **Return** your standard summary — implementation order, provisional upstreams named —
-   ending with the next command: `/implement-section $pkg/<first section in dependency order>`
+   ending with the next command: `/project-workers:implement-section $pkg/<first section in dependency order>`
 
 ## Adopting an existing package
 
-When the package directory already has code (a repo mapped by `/map-project`, or a package
+When the package directory already has code (a repo mapped by `/project-workers:map-project`, or a package
 someone wrote by hand), this run documents rather than designs: the assessment in step 1 is
 the survey of that code; the contract is written *as it is* (the template says how); every
 designer runs `Mode: document`; the integration doc gains its **Coverage** heading; and
@@ -108,7 +109,7 @@ designer runs `Mode: document`; the integration doc gains its **Coverage** headi
 exist — or *inferred* and marked so when the top-level `__init__.py` is empty. If it was
 transcribed, also write `docs/packages/$pkg/interface.md` in the same as-is spirit: it is a
 transcription of shipped code, which is what that file always is. If inferred, write no
-`interface.md` — the package is not shipped in this system's sense until `/finalize-package`
+`interface.md` — the package is not shipped in this system's sense until `/project-workers:finalize-package`
 runs — and say so in your return. Nothing in an adoption run proposes a change; what looks
 wrong becomes a followup addressed to its section.
 
@@ -116,6 +117,6 @@ wrong becomes a followup addressed to its section.
 
 - Planning documents only. No code, no config, no tests.
 - Never edit another package's documents. A change you need from a shipped package is a
-  stub recommending `/plan-change`; from an unshipped one, a stub scoped to that package that
-  its `/plan-package` run will find.
+  stub recommending `/project-workers:plan-change`; from an unshipped one, a stub scoped to that package that
+  its `/project-workers:plan-package` run will find.
 - Do not implement anything. The user reviews the plan and answers decisions first.

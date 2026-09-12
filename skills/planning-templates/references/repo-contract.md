@@ -1,7 +1,7 @@
 # `docs/architecture.md` — the repo contract
 
-Written at repo scope (`/plan-repo`, `/map-project`); read by every skill; edited later only
-for parts no shipped package provides or consumes, or by `/sync-plan` after a change ships.
+Written at repo scope (`/project-workers:plan-repo`, `/project-workers:map-project`); read by every skill; edited later only
+for parts no shipped package provides or consumes, or by `/project-workers:sync-plan` after a change ships.
 
 Budget 250 lines. A contract complete enough that a package could be planned from it plus the
 shipped surfaces below it is the requirement; the line count is a hint that you are writing

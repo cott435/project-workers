@@ -1,6 +1,6 @@
 ---
 name: map-project
-description: Adopt an existing codebase into the planning system, at repo scope - reverse-engineers docs/architecture.md, the decision ledger, and the follow-up queue from the code as it stands, then hands each package to /plan-package for its own document-mode run. Run once on a repo with code but no docs/, and again when the canonical docs have drifted from the code.
+description: Adopt an existing codebase into the planning system, at repo scope - reverse-engineers docs/architecture.md, the decision ledger, and the follow-up queue from the code as it stands, then hands each package to /project-workers:plan-package for its own document-mode run. Run once on a repo with code but no docs/, and again when the canonical docs have drifted from the code.
 argument-hint: "[scope — a directory or a note on what to focus on; optional]"
 context: fork
 agent: architect
@@ -16,12 +16,13 @@ $ARGUMENTS
 
 > **Guard.** If you can see earlier conversation turns, or you have an `AskUserQuestion` tool, you are
 > running in the main conversation rather than as the `architect` subagent — the agent is not
-> registered, usually because `.claude/agents/` was added after Claude Code started. Stop, tell the
-> user to restart Claude Code (verify with `/agents`) and re-run. Do not plan in the main thread.
+> registered, usually because the project-workers plugin was installed or updated after Claude
+> Code started. Stop, tell the user to run `/reload-plugins` (or restart Claude Code),
+> verify with `/agents`, and re-run. Do not plan in the main thread.
 
 Run this on a repo that has code but no `docs/` — and again, later, when the canonical docs have
 drifted far enough from the code that they mislead. This run writes the **repo-level** documents
-only. Each package is then adopted by `/plan-package <pkg>`, which on existing code runs in
+only. Each package is then adopted by `/project-workers:plan-package <pkg>`, which on existing code runs in
 document mode and writes the package contract, section designs, integration, and surface. One
 run per level keeps each run small enough to finish, and makes a re-run after the interview
 rule cheap.
@@ -70,7 +71,7 @@ architecture doc is indistinguishable from one that hallucinated it.
    stopping for: you are naming things that become permanent directory names and shell
    arguments. Also worth asking: which conventions you found are intentional versus accidental,
    and whether any area is deliberately out of scope. Check the ledger; stub anything unasked
-   tagged `Raised by: /map-project (interview)` and **stop** with the stop message — before
+   tagged `Raised by: /project-workers:map-project (interview)` and **stop** with the stop message — before
    the contract is written, and with the questions in `docs/decisions.md` and nowhere else.
    Otherwise proceed.
 
@@ -91,15 +92,15 @@ architecture doc is indistinguishable from one that hallucinated it.
 
 6. **Return** your standard summary plus one line per package: path, whether its top-level
    `__init__.py` re-exports anything, and whether a `docs/packages/<pkg>/` already exists. End
-   with the next command: `/plan-package <lowest package in dependency order>` — the
+   with the next command: `/project-workers:plan-package <lowest package in dependency order>` — the
    package runs go bottom-up so each one's dependencies are documented first.
 
 ## Constraints
 
 - Documentation only. No code, no config, no tests, no fixes.
-- Do not spawn designers and do not write package documents; `/plan-package` does both, in
+- Do not spawn designers and do not write package documents; `/project-workers:plan-package` does both, in
   document mode, one package at a time.
 - Do not design improvements. If the code does something badly, that is a follow-up — the
-  change that fixes it is a separate `/plan-change` run.
+  change that fixes it is a separate `/project-workers:plan-change` run.
 - Be honest about what you could not determine. A contract that guesses at a shape is worse
   than one with a gap marked, because the next run will plan against your guess.

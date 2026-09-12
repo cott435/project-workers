@@ -1,6 +1,6 @@
 ---
 name: status
-description: Print the checklist of where every package and section stands - planned, built, reviewed since its last build, open follow-ups, decision markers - derived from docs/ and the code, never from a status file. Use before /finalize-package, before planning the next package, or whenever you have lost track of what is done.
+description: Print the checklist of where every package and section stands - planned, built, reviewed since its last build, open follow-ups, decision markers - derived from docs/ and the code, never from a status file. Use before /project-workers:finalize-package, before planning the next package, or whenever you have lost track of what is done.
 argument-hint: "[pkg] [--gate]"
 disable-model-invocation: true
 ---
@@ -12,11 +12,11 @@ python3 ${CLAUDE_SKILL_DIR}/scripts/status.py $ARGUMENTS
 ```
 
 Then, in two or three lines, say what the table means for the next command: which section is
-next in order, which sections still need a review before `/finalize-package`, which package
+next in order, which sections still need a review before `/project-workers:finalize-package`, which package
 is ready to plan against. Do nothing else — no edits, no fixes.
 
 With a package name, only that package is shown. With `--gate`, the script also prints the
-`/finalize-package` preconditions as PASS or FAIL with reasons — the same check that skill
+`/project-workers:finalize-package` preconditions as PASS or FAIL with reasons — the same check that skill
 runs before building the surface.
 
 Everything printed is derived: a package is *planned* when `contract.md` exists, *built* when

@@ -1,7 +1,7 @@
 # `integration.md` — reconciliation after the designers return
 
 Package scope writes `docs/packages/<pkg>/integration.md`; change scope writes
-`docs/plans/<slug>/integration.md`; `/map-project` and adoption runs write it about existing
+`docs/plans/<slug>/integration.md`; `/project-workers:map-project` and adoption runs write it about existing
 code (see the last section). Read every design you delegated — those files, not the whole
 directory — before writing.
 
@@ -13,7 +13,7 @@ directory — before writing.
    Same resolution format.
 
 3. **Dependency order** — the order sections should be implemented, with reason. This is the
-   order the user will type `/implement-section` in, and `/implement-section` refuses a
+   order the user will type `/project-workers:implement-section` in, and `/project-workers:implement-section` refuses a
    section whose dependencies are unbuilt, so the order must respect the Sections table's
    `Depends on`.
 
@@ -33,7 +33,7 @@ directory — before writing.
    edit `docs/architecture.md` and note it here. Otherwise `needs plan-change`, with a stub
    scoped `repo`.
 
-8. **Canonical doc updates** *(change plans only)* — which canonical docs `/sync-plan` must
+8. **Canonical doc updates** *(change plans only)* — which canonical docs `/project-workers:sync-plan` must
    update once the code ships — contracts, designs, `surface.md`, `interface.md`, the repo
    contract's Boundaries — and what each change is. Specific enough that someone with no
    memory of this run could apply it.

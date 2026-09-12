@@ -1,7 +1,7 @@
 # `docs/packages/<pkg>/contract.md` — the package contract
 
 Written at package scope before designers are delegated; read by designers, implementer,
-reviewer, `/finalize-package`, and `/plan-change` (its **Consumes** table). Budget 200 lines.
+reviewer, `/project-workers:finalize-package`, and `/project-workers:plan-change` (its **Consumes** table). Budget 200 lines.
 
 Where this contract needs a repo-contract shape to change, do not change it here — raise it
 under **Repo contract deviations** in the integration doc.
@@ -12,7 +12,7 @@ under **Repo contract deviations** in the integration doc.
    depends on. Paths are `packages/<pkg>/src/<pkg>/<section>/` (or `src/<pkg>/<section>/` in a
    single-package repo); owner docs are `docs/packages/<pkg>/design/<section>.md`. `Depends on`
    names sections in this package only, and must form a DAG — it becomes an import-linter
-   contract and the order `/implement-section` enforces.
+   contract and the order `/project-workers:implement-section` enforces.
 
 3. **Section interfaces** — per section, what it returns to its dependents, as signatures.
    Reference repo shapes by name; never redefine them. This is where "what each section
@@ -28,7 +28,7 @@ under **Repo contract deviations** in the integration doc.
    public later. Keep it short; the surface is what consumers need, not what sections offer.
 
 6. **Consumes** — table: upstream package | name | shape | status (`shipped` /
-   `provisional` / `stale`). `/plan-change` reads this to find planned consumers of a package,
+   `provisional` / `stale`). `/project-workers:plan-change` reads this to find planned consumers of a package,
    so list every upstream name this package will use.
 
 7. **Package conventions** — only what goes beyond the repo contract.
