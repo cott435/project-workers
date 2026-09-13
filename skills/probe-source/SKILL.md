@@ -27,11 +27,10 @@ Build your probe-mode prompt from what exists, so a direct run matches an archit
 
 - `Source:` `$source`, lowercase, the token the package contract's `source` column uses.
 - `Purpose:` the argument text if given; else the `responsibility` of the row in
-  `docs/packages/$pkg/contract.md`'s Sections table whose `source` is `$source`; else the line
-  mentioning `$source` in `docs/packages/$pkg/brief.md` or `docs/brief.md`; else a blocker —
-  "no purpose given and none on file".
-- `Env var:` the name the repo contract's **Shared conventions** or the package brief gives for
-  this source, else `discover`.
+  `docs/packages/$pkg/contract.md`'s Sections table whose `source` is `$source`; else a
+  blocker — "no purpose given and none on file".
+- `Env var:` the name the repo contract's **Shared conventions** gives for this source, else
+  `discover`.
 - `Extracted skill:` `.claude/skills/<skill>/` for the `docs/legacy/inventory.md` row whose
   `skill` or `resource` names `$source`, else `none`.
 - `Write to:` `docs/packages/$pkg/sources/$source.md`.

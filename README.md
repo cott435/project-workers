@@ -274,7 +274,6 @@ docs/
 ├── api/<pkg>.md                    docs-site API pages                       (finalize-project)
 ├── packages/
 │   └── data/
-│       ├── brief.md                the package brief, if given               (plan-package)
 │       ├── assessment.md           package survey                            (plan-package)
 │       ├── sources/<source>.md     SOURCE PROBE: observed schema, limits, errors (researcher)
 │       ├── sources/<source>.sample.json · .probe.py   recorded responses, re-runnable probe

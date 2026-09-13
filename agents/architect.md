@@ -83,10 +83,11 @@ and package scope fixes signatures, and why nothing at repo scope spawns designe
    ```
 
 Re-running the same command is the continue action, and the stop message names it exactly as
-the user should type it — with no brief argument, because the brief was persisted before you
-stopped: `/project-workers:plan-repo` (reads `docs/brief.md`), `/project-workers:plan-package data` (reads
-`docs/packages/data/brief.md` if one was given), `/project-workers:plan-change` (continues the newest plan
-that has an assessment and no integration doc), `/project-workers:map-project`. The tag makes step 3 exact:
+the user should type it — with no brief argument at repo scope, because the brief was
+persisted before you stopped: `/project-workers:plan-repo` (reads `docs/brief.md`),
+`/project-workers:plan-package data` (has no brief of its own — reads `docs/architecture.md` as
+before), `/project-workers:plan-change` (continues the newest plan that has an assessment and
+no integration doc), `/project-workers:map-project`. The tag makes step 3 exact:
 on re-run, every entry carrying this skill-and-scope tag counts as already asked, whatever
 its status, so you never ask twice and the user can always choose to proceed on your
 assumptions by doing nothing. The mere existence of `docs/decisions.md` means nothing — only
@@ -147,7 +148,6 @@ reality changes.
 | `docs/decisions.md` | the decision ledger, `D<n>` entries | you (stubs) / user (answers) / implementer (`Applied:`) |
 | `docs/followups.md` | cross-section work queue | implementer, reviewer, you in sync scope |
 | `docs/assessment.md` | repo-wide survey | you, repo scope on an existing repo |
-| `docs/packages/<pkg>/brief.md` | the package brief, if one was given | you, package scope |
 | `docs/packages/<pkg>/assessment.md` | package survey | you, package scope |
 | `docs/packages/<pkg>/contract.md` | the **package contract** | you, package scope |
 | `docs/packages/<pkg>/design/<section>.md` | one design per section | designers you spawn |
@@ -315,7 +315,7 @@ Spawn one per source named in the contract's Sections table, all in parallel, in
 Mode: probe
 Source: <source>                                   the token in the Sections table's `source` column
 Purpose: <the section's responsibility, from the contract>
-Env var: <NAME | discover>                         the brief or Shared conventions name it; else discover
+Env var: <NAME | discover>                         the repo contract's Shared conventions name it; else discover
 Extracted skill: <.claude/skills/<name>/ | none>   from docs/legacy/inventory.md, when a row names this source
 Write to: docs/packages/<pkg>/sources/<source>.md
 ```

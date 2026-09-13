@@ -1,7 +1,7 @@
 ---
 name: plan-package
 description: Plan one package of a repo that /project-workers:plan-repo has already contracted. Writes the package contract - sections, section interfaces, pipelines - runs parallel section designs, reconciles them into integration.md, and designs the public surface in surface.md. Reads the shipped interface.md of every package this one depends on.
-argument-hint: "<pkg> [package brief, or path to a file containing it]"
+argument-hint: "<pkg>"
 arguments: [pkg]
 context: fork
 agent: architect
@@ -17,9 +17,8 @@ Plan package **$pkg** at **package scope**.
 > Code started. Stop, tell the user to run `/reload-plugins` (or restart Claude Code),
 > verify with `/agents`, and re-run. Do not plan in the main thread.
 
-If `$pkg` reached you unsubstituted — literally the text `$pkg` — take the first token of
-`$ARGUMENTS` as the package. Everything after the first token is the package brief: inline
-text, or a path to a file holding it. It may be empty.
+If `$pkg` reached you unsubstituted — literally the text `$pkg` — take `$ARGUMENTS` as the
+package name directly.
 
 ## Preconditions
 
@@ -35,8 +34,7 @@ invent its own shapes and conventions, and the next package will invent them dif
   package is **shipped** and those signatures are what your designers build against. If it
   does not, `docs/packages/<dep>/contract.md` if that exists, else only the repo contract's
   Boundaries; in both of those cases every name you consume is **provisional**.
-- `docs/packages/$pkg/` if it exists — a re-run after the interview rule stopped, or a
-  package with a brief already persisted.
+- `docs/packages/$pkg/` if it exists — a re-run after the interview rule stopped.
 - The package's code directory if it exists (an existing repo being adopted package by
   package).
 - `docs/legacy/inventory.md` if it exists — its `resource` and `skill` columns only, to fill
@@ -46,20 +44,21 @@ invent its own shapes and conventions, and the next package will invent them dif
 
 ## Steps
 
-1. **Persist the brief** to `docs/packages/$pkg/brief.md` if one was given — inline text
-   verbatim, a path's contents copied — so a re-run as `/project-workers:plan-package $pkg` with no brief
-   finds it. Survey the package directory if it exists and write
+1. **Assess.** Survey the package directory if it exists and write
    `docs/packages/$pkg/assessment.md`; on a greenfield package there is nothing to assess.
+   There is no package-level brief to persist — package intent comes entirely from
+   `docs/architecture.md`. To give a package direction the repo contract does not carry, put
+   it there via `/project-workers:plan-repo "<comments>"` before this run, not here.
 
 2. **Survey skills.** Enumerate the project skills per your instructions; the repo contract's
    `candidate skills` column for `$pkg` is the starting point.
 
-3. **Interview rule.** Section boundaries the brief and contract do not settle, a candidate
+3. **Interview rule.** Section boundaries the repo contract does not settle, a candidate
    skill with no section, a section with no skill, a pipeline whose ordering is ambiguous, a
    provisional upstream name you need settled, or a section that plainly needs an external
-   `source` whose exact vendor or token you cannot pin down from the brief or the repo
-   contract — a wrong guess there sends a probe, a design, and a build at the wrong API, which
-   is the cost test's textbook case. Check the ledger; stub anything unasked tagged
+   `source` whose exact vendor or token you cannot pin down from the repo contract — a wrong
+   guess there sends a probe, a design, and a build at the wrong API, which is the cost test's
+   textbook case. Check the ledger; stub anything unasked tagged
    `Raised by: /project-workers:plan-package $pkg (interview)` and **stop** with the stop message. Otherwise
    proceed.
 
@@ -72,8 +71,8 @@ invent its own shapes and conventions, and the next package will invent them dif
 
 4b. **Probe.** For every section whose `source` is not `—`, spawn one `researcher` in probe
    mode per your **Probing** section, all in parallel, in one message — `Purpose:` from the
-   section's responsibility, `Env var:` from the brief or the repo contract's Shared
-   conventions when named, `Extracted skill:` from the inventory when a row names this source.
+   section's responsibility, `Env var:` from the repo contract's Shared conventions when
+   named, `Extracted skill:` from the inventory when a row names this source.
    Skip a source whose probe doc is dated today and `valid`. Wait for all of them. Any credential failure
    → **stop** with the credential stop message and write nothing further. Otherwise continue.
 
