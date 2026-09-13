@@ -23,8 +23,8 @@ missing, or have gone stale — because that is the normal case, not the excepti
 
 Your prompt gives you: the section as `<pkg>/<section>`, its design doc path, the package
 contract, the repo contract, the integration doc, the surface doc, the decisions log, the
-follow-up queue, review findings, the shipped documents of what you consume, and optionally
-a plan slug for change work. Read all of them before writing any code.
+follow-up queue, review findings, the shipped documents of what you consume — including the
+probe doc of any external source — and optionally a plan slug for change work. Read all of them before writing any code.
 
 ## Order of authority
 
@@ -55,6 +55,9 @@ plan-time document about that provider, including the integration doc and the co
 - another package → `docs/packages/<dep>/interface.md`, and you import only the names it
   lists, only from the package's top level (`from data import load_bars`; never
   `from data.ingest.loaders import …`) — import-linter rejects the other form;
+- an external service → its probe doc `docs/packages/<pkg>/sources/<source>.md` and
+  `<source>.sample.json`, over the design's assumed shape; the sample is your parser's test
+  fixture. No probe doc, or one dated before your design → probe it yourself in step 5;
 - a sibling section with no README → do not build; that is the unbuilt-dependency blocker
   below, and the fix is to build the sibling first. An upstream package with code but no
   `interface.md` → its `contract.md`, every consumed name reported as provisional; with no
@@ -227,6 +230,18 @@ is cheaper than a section built on a guess.
    Where a shipped interface differs from what your design assumed, adapt, and record it under
    README item 7.
 
+   For an external source, read its probe doc and copy `<source>.sample.json` into your
+   section's test fixtures: the parser's tests run against a recorded response, never a
+   hand-written dict shaped like the design. If the probe doc is missing, or dated before the
+   design doc, make one real call with the design's params — credentials from env, loading
+   `.env` without printing it, response scrubbed — and save that as the fixture instead. Diff
+   it against the design's assumed fields. A mismatch is a deviation: build and test against
+   what you observed, record it under README item 7, and append
+   `- [ ] <pkg>/<section>: re-run /project-workers:probe-source <pkg> <source> — design assumed <X>, observed <Y> — <date>`
+   to `docs/followups.md`. No credentials available → build against the design, leave
+   `# TODO(probe <source>)` at the parser, and report it. Never edit the probe doc; the
+   researcher is its only writer.
+
 6. **Pick up follow-ups, review findings, and shared work.** Read `docs/followups.md` and the
    most recent `docs/reviews/<date>-<pkg>-<section>.md` for your section, if either exists.
    Items addressed to `<pkg>/<section>` are part of your task. Implement them, mark follow-ups
@@ -322,8 +337,8 @@ of it, so a missing heading is a hole in the project's front page.
 7. **Implementation notes** — decisions not obvious from the code; deviations from the design,
    the contracts, the integration doc, and `surface.md`, each with what the document said and
    what you did; which dependency READMEs and `interface.md` files you consumed and any place
-   they contradicted the plan; open `TODO(decision D<n>)` markers; `D<n>` numbers applied
-   this run.
+   they contradicted the plan; open `TODO(decision D<n>)` and `TODO(probe <source>)` markers;
+   `D<n>` numbers applied this run.
 
 Under 150 lines. Describe what exists, not what is planned. Item 7 matters more than it
 looks: your return message dies with this fork, so anything about how the code diverged from
@@ -343,7 +358,7 @@ Under 25 lines:
 - Test command and result (pass/fail counts); `lint-imports` result
 - Deviations (numbered)
 - `D<n>` applied this run, and `TODO(decision D<n>)` markers resolved
-- `TODO(decision D<n>)` markers left, with their decision IDs
+- `TODO(decision D<n>)` markers left, with their decision IDs; `TODO(probe <source>)` markers left
 - Follow-ups filed (count and targets); follow-ups completed
 - Review findings addressed, if any
 - Dependencies consumed from plan-time documents rather than shipped ones, if any

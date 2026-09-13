@@ -23,7 +23,9 @@ project-workers/
 │   ├── designer.md       designs one section against the contracts + upstream interfaces
 │   ├── implementer.md    builds one section — or, in surface mode, a package's public surface
 │   ├── reviewer.md       reviews one section, or one package
-│   └── documenter.md     package READMEs, API pages, root README from shipped docs
+│   ├── documenter.md     package READMEs, API pages, root README from shipped docs
+│   ├── curator.md        surveys an old repo into docs/legacy/inventory.md; coordinates researchers
+│   └── researcher.md     extract: one inventory row → one project skill · probe: one API → its probe doc
 ├── rules/
 │   └── python-standards.md   thin pointer; loads on *.py for your own interactive work
 ├── pyproject-lint-config.toml  merge into the root pyproject.toml; enforces the hard limits
@@ -32,6 +34,8 @@ project-workers/
     ├── plan-package/       → architect     one package: sections, designs, integration, surface
     ├── plan-change/        → architect     change to shipped code, with downstream impact
     ├── map-project/        → architect     adopt an existing repo (repo level; then plan-package per package)
+    ├── extract-legacy/     → curator       old repo → inventory (stop) → project skills, one per kept row
+    ├── probe-source/       → researcher    one external API → docs/packages/<pkg>/sources/<source>.md
     ├── implement-section/  → implementer   <pkg>/<section> [slug]
     ├── review-section/     → reviewer      <pkg>/<section> [slug]
     ├── finalize-package/   → implementer   <pkg>: lazy __init__, pipelines, cli.py, docs page, interface.md
@@ -73,7 +77,7 @@ and then the implementer, so the same conventions apply at design time and at bu
    `/plugin marketplace add <owner>/project-workers` then
    `/plugin install project-workers@connor-plugins`. In Cowork: Customize -> Plugins ->
    Add marketplace, then Install.
-2. **Verify with `/agents`** before the first run: the five agents must be listed. If they are
+2. **Verify with `/agents`** before the first run: the seven agents must be listed. If they are
    not, run `/reload-plugins` (or restart Claude Code). Until they are registered a workflow
    skill runs in your main conversation instead of forking — you get a question widget instead
    of a stop message, and the run writes the wrong files. Every workflow skill checks for this
@@ -94,142 +98,26 @@ existing repo, no docs/ yet                 → /project-workers:map-project (re
 existing repo, docs/ already there          → /project-workers:plan-change
 docs/ exist but have drifted from the code  → /project-workers:map-project (re-map), then /project-workers:plan-package <pkg> as needed
 adding a package to a planned repo          → /project-workers:plan-repo "<what to add>", then /project-workers:plan-package <pkg>
+rebuilding from an old, messy repo          → /project-workers:extract-legacy <old repo> (twice), then /project-workers:plan-repo
+an API changed, or a source added later     → /project-workers:probe-source <pkg> <source>
 lost track                                  → /project-workers:status
 ```
 
-## Workflow A — new repo, package by package
+## Workflows
 
-```
-/project-workers:plan-repo docs/brief.md
-```
+One page per pipeline, in `site/workflows/` — rendered under **Workflows** on the reading site.
+A new pipeline is a new file there; `build_site.py` picks it up.
 
-Forks into the **architect** at repo scope. It reads your brief and your project skills and
-writes `docs/architecture.md` — the **repo contract**: the package list with responsibilities,
-the dependency graph as an import-linter block, the **shapes** that cross each boundary (a
-DataFrame of bars with these columns, a `Lot` record — not function signatures), the shared
-conventions (error format, log keys, config prefixes, timezone, ID types), and the toolchain
-(workspace tool, test and lint commands, docs renderer). It never spawns designers: packages
-are planned one at a time, below.
-
-If it has questions it cannot settle, it **stops** — see [Questions](#questions) — and you
-re-run.
-
-```
-/project-workers:plan-package data
-```
-
-Forks into the architect at package scope. It reads the repo contract and, for every package
-`data` depends on, that package's `docs/packages/<dep>/interface.md` — the surface as shipped.
-Then:
-
-1. Writes `docs/packages/data/contract.md` — the **package contract**: the section list, what
-   each section returns to its siblings (signatures now, not shapes), the pipelines that run
-   the sections in order (`download → clean → audit → store`), what the package will expose,
-   and a `Consumes` table of every upstream name it uses.
-2. Spawns one **designer** per section, in parallel. Each writes
-   `docs/packages/data/design/<section>.md` and returns ten lines.
-3. Reads every design and writes `docs/packages/data/integration.md`: deviations, mismatches,
-   dependency order, shared work, risks, decisions needed — and **Repo contract deviations**,
-   which it may resolve by editing the repo contract only when no shipped package is bound by
-   the shape.
-4. Writes `docs/packages/data/surface.md` — the design of the public surface, now that the
-   section interfaces are concrete: the `__all__` names (only those a downstream package or a
-   CLI command consumes, each with its consumer named), the pipeline signatures, the CLI
-   commands with every argument, the import-linter contracts for this package.
-5. Appends `D<n>` stubs to `docs/decisions.md`.
-
-Then answer the decisions, and implement in the order `integration.md` gives, reviewing as you
-go:
-
-```
-/project-workers:implement-section data/ingest
-/project-workers:review-section data/ingest
-/project-workers:implement-section data/clean
-/project-workers:review-section data/clean
-…
-```
-
-Sections go in that order and cannot be built out of it: `/project-workers:implement-section data/clean`
-refuses while `data/ingest` has no README. Each implementer reads the **READMEs** of the
-sections it depends on — what actually shipped — ranked above those sections' design docs. `integration.md` is a plan-time document; it stops
-being true the moment the first implementer deviates, and implementers deviate. The README is
-where a deviation is recorded, so the README is what the next section codes against.
-
-When every section has a README *and a review newer than it*, publish the package:
-
-```
-/project-workers:status data --gate
-/project-workers:finalize-package data
-/project-workers:review-package data
-```
-
-`/project-workers:finalize-package` refuses until every section is built and reviewed since its last build and
-no review-sourced follow-up is open — `/project-workers:status data --gate` shows the same check. Then it forks
-into the implementer in **surface mode**: it writes the top-level `src/data/__init__.py`
-(lazy re-exports — importing `data` loads nothing until a name is used — of only the names a
-consumer needs), the `pipelines/` that compose the sections, `cli.py` with one function per
-command (its docstring is the `--help` text), the package's `docs/api/data.md` page so the
-docs site builds strict from here on, `Applied:` lines any section implementer missed, and
-`docs/packages/data/interface.md` — the public surface **as shipped**. `/project-workers:review-package` is
-the gate: `__all__`, `interface.md`, and the section READMEs agree; every public name has a
-consumer; every shape the repo contract promised is realized; `lint-imports` and `mkdocs
-build --strict` pass; the pipelines and commands run.
-
-Next week:
-
-```
-/project-workers:plan-package analysis
-```
-
-reads `docs/packages/data/interface.md` as its upstream, and its designers reference those
-names exactly. Planning against a package that has no `interface.md` yet is allowed — every
-consumed name is marked `provisional` and the return says so.
-
-```
-/project-workers:finalize-project
-```
-
-writes a README per package and the root README from the shipped documents, plus the docs-site
-API pages. Safe to run early and often.
-
-## Workflow B — changing shipped code
-
-```
-/project-workers:plan-change "Add volume-weighted bars"
-```
-
-1. Forks into the architect at change scope, which spawns **Explore** to assess what the change
-   touches and writes `docs/plans/<slug>/assessment.md`.
-2. **Downstream impact.** For every affected package with an `interface.md`, it computes the
-   consumers — `grep` over `packages/*/src` for shipped ones, the `Consumes` tables in other
-   packages' contracts for planned ones — and lists which public names each uses that the
-   change alters. Nothing maintains a consumers list; it is derived every time.
-3. Seeds anything canonical that is missing (see `/project-workers:map-project` for the full version).
-4. Writes `docs/plans/<slug>/contract-delta.md`: only the contracts added, changed, or removed,
-   grouped by **Repo contract**, **Package contract: <pkg>**, and **Interface: <pkg>**.
-5. Spawns designers in `Mode: change` (or `new`) — including downstream consumer sections it is
-   adapting — writing to `docs/plans/<slug>/<pkg>/<section>.md`.
-6. Writes `docs/plans/<slug>/integration.md`, including **Canonical doc updates**.
-
-Then implement with the slug, and fold the plan back when it ships:
-
-```
-/project-workers:implement-section data/clean add-vwap
-/project-workers:implement-section analysis/features add-vwap
-/project-workers:review-section data/clean add-vwap
-/project-workers:sync-plan add-vwap
-```
-
-**A change to a shipped package's public surface must go through `/project-workers:plan-change`.** If you run
-`/project-workers:implement-section data/clean` without a slug and the work would alter a name in
-`docs/packages/data/interface.md`, the implementer refuses: consumers were built against that
-file. Internal changes proceed.
-
-**`/project-workers:sync-plan` is not optional.** Until it runs, the design docs, contracts, and `interface.md`
-describe pre-change behavior — and those stale files are what the next `/project-workers:plan-change` hands its
-designers and what `/project-workers:plan-package` hands the next package as its upstream. It folds in only the
-sections it can verify shipped, records them in `docs/plans/synced.md`, recomputes consumers
-for any `interface.md` it changed, and files follow-ups for consumers the plan did not adapt.
+- [New repo, package by package](site/workflows/new-repo.md) — `/project-workers:plan-repo`, then per
+  package: `/project-workers:plan-package` → `/project-workers:implement-section` + `/project-workers:review-section` per
+  section → `/project-workers:finalize-package` → `/project-workers:review-package`. `/project-workers:finalize-project` any time.
+- [Changing shipped code](site/workflows/change-shipped-code.md) — `/project-workers:plan-change` →
+  `/project-workers:implement-section <pkg>/<section> <slug>` → `/project-workers:review-section` → `/project-workers:sync-plan`.
+- [Adopting an existing repo](site/workflows/adopt-existing-repo.md) — `/project-workers:map-project`, then
+  `/project-workers:plan-package <pkg>` per package, bottom-up, in document mode.
+- [Rebuilding from a legacy repo](site/workflows/rebuild-from-legacy.md) — `/project-workers:extract-legacy` (survey,
+  then extract) → project skills → the new-repo workflow, with every external source probed
+  live inside `/project-workers:plan-package`.
 
 ## Questions
 
@@ -382,11 +270,14 @@ docs/
 ├── decisions.md                    D<n> ledger, Scope: field                 (architect stubs / you / implementer)
 ├── followups.md                    queue, entries `- [ ] <pkg>/<section>: …` (implementer, reviewer, sync-plan)
 ├── assessment.md                   repo survey                               (map-project, plan-repo extend)
+├── legacy/inventory.md             what to salvage from an old repo          (curator drafts / you mark keep)
 ├── api/<pkg>.md                    docs-site API pages                       (finalize-project)
 ├── packages/
 │   └── data/
 │       ├── brief.md                the package brief, if given               (plan-package)
 │       ├── assessment.md           package survey                            (plan-package)
+│       ├── sources/<source>.md     SOURCE PROBE: observed schema, limits, errors (researcher)
+│       ├── sources/<source>.sample.json · .probe.py   recorded responses, re-runnable probe
 │       ├── contract.md             THE PACKAGE CONTRACT                      (plan-package)
 │       ├── design/<section>.md     one per section                           (designer)
 │       ├── integration.md          reconciliation, plan-time                 (architect)
@@ -420,7 +311,15 @@ against without the consumed names being marked provisional.
 ```
 you ── /project-workers:plan-repo ────────────▶ architect ──▶ docs/architecture.md, decision stubs   (may stop for questions)
 
+you ── /project-workers:extract-legacy ../old ──▶ curator ──▶ docs/legacy/inventory.md   (stops; you mark keep)
+you ── /project-workers:extract-legacy ────────▶ curator ──┬──▶ researcher (L1) ──▶ .claude/skills/polygon-aggregates/
+                                                ├──▶ researcher (L2) ──▶ .claude/skills/bars-schema/
+                                                └──▶ …
+                                     curator ──▶ inventory statuses
+
 you ── /project-workers:plan-package data ────▶ architect ──▶ docs/packages/data/contract.md
+                                architect ──┬──▶ researcher (probe polygon) ──▶ sources/polygon.md   (stops if a key is unset or rejected)
+                                            └──▶ researcher (probe fred)    ──▶ sources/fred.md
                                 architect ──┬──▶ designer (data/ingest)  ──▶ design/ingest.md
                                             ├──▶ designer (data/clean)   ──▶ design/clean.md
                                             └──▶ designer (data/storage) ──▶ design/storage.md
@@ -451,6 +350,10 @@ Every arrow into an agent carries a file path, not a conversation.
 - **Nobody can ask you anything.** The architect stops and writes stubs; designers,
   implementers, and reviewers turn missing information into a stated assumption plus an open
   question, or a blocker returned to you.
+- **Probes make real API calls.** `/project-workers:plan-package` calls every source in the Sections table —
+  one request per endpoint plus one deliberately bad one — and stops before any design if a
+  key is unset or rejected. Keys come from env or a root `.env`; the researcher never writes a
+  value anywhere. A source probed successfully today is not re-probed.
 - **Re-running the same command is the continue action** after a stop. Doing nothing in the
   ledger means "accept the assumptions".
 - **Return size is context cost.** Designers and implementers return short summaries; the

@@ -39,6 +39,10 @@ invent its own shapes and conventions, and the next package will invent them dif
   package with a brief already persisted.
 - The package's code directory if it exists (an existing repo being adopted package by
   package).
+- `docs/legacy/inventory.md` if it exists — its `resource` and `skill` columns only, to fill
+  `Extracted skill:` when probing. Never its paths; the old code is not yours to read.
+- `docs/packages/$pkg/sources/*.md` if any — probe docs from an earlier run or from
+  `/project-workers:probe-source`. One dated today whose **Credentials** reads `valid` is not re-probed.
 
 ## Steps
 
@@ -52,20 +56,34 @@ invent its own shapes and conventions, and the next package will invent them dif
 
 3. **Interview rule.** Section boundaries the brief and contract do not settle, a candidate
    skill with no section, a section with no skill, a pipeline whose ordering is ambiguous, a
-   provisional upstream name you need settled. Check the ledger; stub anything unasked tagged
+   provisional upstream name you need settled, or a section that plainly needs an external
+   `source` whose exact vendor or token you cannot pin down from the brief or the repo
+   contract — a wrong guess there sends a probe, a design, and a build at the wrong API, which
+   is the cost test's textbook case. Check the ledger; stub anything unasked tagged
    `Raised by: /project-workers:plan-package $pkg (interview)` and **stop** with the stop message. Otherwise
    proceed.
 
 4. **Package contract.** Invoke `planning-templates`, read `references/package-contract.md`,
    and write `docs/packages/$pkg/contract.md` to it. **Public surface (intent)** is the
    filter `surface.md` will be checked against: every entry names the downstream package or
-   CLI command that consumes it, and nothing without a consumer is listed.
+   CLI command that consumes it, and nothing without a consumer is listed. The Sections
+   table's `source` column names the external service each section consumes, or `—`; it is
+   what the next step iterates over, so a service missing from it is never probed.
+
+4b. **Probe.** For every section whose `source` is not `—`, spawn one `researcher` in probe
+   mode per your **Probing** section, all in parallel, in one message — `Purpose:` from the
+   section's responsibility, `Env var:` from the brief or the repo contract's Shared
+   conventions when named, `Extracted skill:` from the inventory when a row names this source.
+   Skip a source whose probe doc is dated today and `valid`. Wait for all of them. Any credential failure
+   → **stop** with the credential stop message and write nothing further. Otherwise continue.
 
 5. **Delegate.** One `designer` per section, all in parallel, using your delegation template:
    - `Section: $pkg/<section>`
    - `Mode: new` (or `document` for a section that already has code and is being adopted)
    - `Contracts (highest first): docs/packages/$pkg/contract.md, docs/architecture.md`
    - `Upstream interfaces:` the shipped `interface.md` paths, or `provisional:` paths, or `none`
+   - `Source probes:` the section's probe doc from step 4b, or `none` for a section whose
+     `source` is `—`
    - `Existing design: none` · `Assessment:` the package assessment if you wrote one
    - `Skills to invoke:` that section's project skills
    - `Write your design to: docs/packages/$pkg/design/<section>.md`
@@ -79,7 +97,7 @@ invent its own shapes and conventions, and the next package will invent them dif
 
 6. **Unify.** Read the design docs you delegated, read `references/integration.md`, and write
    `docs/packages/$pkg/integration.md` to it, including **Repo contract deviations** with its
-   shipped-package rule.
+   shipped-package rule, and any probe-doc **Quirks** that cross sections under its risks.
    Update `docs/packages/$pkg/contract.md` where you accept a deviation into the package
    contract; update `docs/architecture.md` only where the resolution is `update repo contract`.
 

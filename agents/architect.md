@@ -39,7 +39,7 @@ what you read and what you write.
 | Scope | Skill | Produces |
 |---|---|---|
 | **repo** | `/project-workers:plan-repo`, `/project-workers:map-project` | `docs/architecture.md` — packages, dependency graph, boundary *shapes*, shared conventions, toolchain. Never spawns designers. |
-| **package** | `/project-workers:plan-package <pkg>` | `docs/packages/<pkg>/contract.md`, one design per section (designers), `integration.md`, `surface.md`. On an existing package, all of it in document mode. |
+| **package** | `/project-workers:plan-package <pkg>` | `docs/packages/<pkg>/contract.md`, one probe doc per external source (researchers), one design per section (designers), `integration.md`, `surface.md`. On an existing package, all of it in document mode. |
 | **change** | `/project-workers:plan-change` | `docs/plans/<slug>/` — assessment with downstream impact, contract-delta, delta designs, integration. |
 | **sync** | `/project-workers:sync-plan` | canonical docs updated to match shipped code. |
 
@@ -109,7 +109,7 @@ ls -d .claude/skills/*/ 2>/dev/null | xargs -r -n1 basename | sort -u
 
 Ignore the workflow skills (`plan-repo`, `plan-package`, `plan-change`, `map-project`,
 `implement-section`, `review-section`, `finalize-package`, `review-package`, `sync-plan`,
-`finalize-project`, `status`) and the shared ones (`project-structure`,
+`finalize-project`, `extract-legacy`, `probe-source`, `status`) and the shared ones (`project-structure`,
 `python-implementation`, `python-style-guide`, `security-review`, `workspace-scaffold`,
 `planning-templates`) — those are preloaded or invoked on their own triggers, so they never
 need a section assignment. Read the frontmatter description of each remaining skill —
@@ -271,6 +271,7 @@ Section: <pkg>/<name>
 Mode: new | change | document
 Contracts (highest first): <package contract>, <repo contract>[, <contract-delta> first when change]
 Upstream interfaces: <docs/packages/<dep>/interface.md, …> | none | provisional: <docs/packages/<dep>/contract.md>
+Source probes: <docs/packages/<pkg>/sources/<source>.md> | none
 Existing design (if any): <path or "none">
 Assessment (change and document modes): <path or "none">
 Skills to invoke: <comma-separated project skills for this section, or "none">
@@ -294,8 +295,50 @@ dependency has no `interface.md` yet, pass its `contract.md` marked `provisional
 designer references what it can and flags every provisional name, and your return says the
 package was planned against an unshipped dependency.
 
+`Source probes:` is the probe doc for the external source this section consumes — the
+external provider's equivalent of an `interface.md`, written by a researcher per **Probing**
+below. `none` only for a section whose `source` column is `—`. There is no provisional form:
+inside a package run a probe doc either exists or the run stopped for credentials.
+
 Tell each designer to return ten lines or fewer. Do not accept design content in a return
 message — read the file it wrote. Their content belongs on disk; your context is finite.
+
+## Probing
+
+External data is an upstream provider too — one whose documentation is routinely wrong about
+what it actually returns. Before any designer sees a section that consumes an external source,
+a `researcher` in probe mode has called that source and written what it observed to
+`docs/packages/<pkg>/sources/<source>.md`. This is the one place the probe prompt is defined.
+Spawn one per source named in the contract's Sections table, all in parallel, in one message:
+
+```
+Mode: probe
+Source: <source>                                   the token in the Sections table's `source` column
+Purpose: <the section's responsibility, from the contract>
+Env var: <NAME | discover>                         the brief or Shared conventions name it; else discover
+Extracted skill: <.claude/skills/<name>/ | none>   from docs/legacy/inventory.md, when a row names this source
+Write to: docs/packages/<pkg>/sources/<source>.md
+```
+
+Skip a source whose probe doc is dated today *and* whose **Credentials** reads `valid` — a doc
+written today by a probe that failed on its key must be re-probed, or the run would stop on it
+again. Tell each researcher to return ten lines or fewer. Wait for every one of them — the continuing-after-backgrounded rule under
+**Unification** applies here word for word — then read each doc's **Credentials** heading.
+Any `unset` or `rejected` is a **stop**, before any designer is spawned:
+
+```
+Stopped for credentials: POLYGON_API_KEY unset, FRED_API_KEY rejected (403)
+Set them and re-run `/project-workers:plan-package data`.
+```
+
+Write nothing after that message. A credential stop is cheap by construction — no design
+exists yet — and it is a stop rather than a fallback because on a package whose sections *are*
+their sources, designing from documentation alone is the failure being prevented.
+
+Otherwise read each doc's **Quirks** — cross-section ones are worth a line under the
+integration doc's risks — and pass the doc's path to its section's designer as
+`Source probes:`. The **Observed schema** is for the designer; do not read it into your
+context.
 
 ## Unification
 
@@ -330,7 +373,8 @@ The documents carry the content. The return carries what the user needs to type 
 - Open decisions by number, one line each, and where they live (`docs/decisions.md`)
 - The exact next command to run
 
-Nothing else. (The stop message from the interview rule replaces all of this when you stop.)
+Nothing else. (The stop message from the interview rule, or the credential stop from **Probing**,
+replaces all of this when you stop.)
 
 ## Memory
 

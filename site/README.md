@@ -28,6 +28,9 @@ Generated, and gitignored — never edit these by hand:
 Authored, and committed:
 
 - `site/mkdocs-base.yml` — theme, extensions, CSS. Everything except the nav.
+- `site/workflows/*.md` — one page per pipeline (new repo, changing shipped code, adopting
+  an existing repo, …); reading order is `WORKFLOWS_ORDER` in `build_site.py`, unlisted files
+  follow alphabetically
 - `site/flow.md` — the hand-written orientation page: where truth comes from, the loop,
   the hand-offs, the order of authority
 - `site/extra.css`

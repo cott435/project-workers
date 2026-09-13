@@ -96,6 +96,13 @@ it is empty, look for the most recent `docs/plans/*/assessment.md` whose plan ha
    only the contracts added, changed, or removed, grouped by which contract, with every altered
    shipped-surface name carrying its old and new signature.
 
+6b. **Probe.** For every affected section whose `source` — from the package contract, or the
+   contract-delta for a section this change adds — has no probe doc whose **Credentials**
+   reads `valid`, run your **Probing** section: one researcher per source, in parallel, before
+   any designer. The credential stop applies here exactly as in `/project-workers:plan-package`. A probe
+   doc that exists and is `valid` is not re-probed, however old; wave B says what to do when it
+   is older than the code.
+
 7. **Delegate**, in two waves. Everything inside a wave runs in parallel; wave B waits for
    wave A, because a delta needs its baseline to exist first.
 
@@ -105,6 +112,7 @@ it is empty, look for the most recent `docs/plans/*/assessment.md` whose plan ha
    - `Contracts (highest first): docs/packages/<pkg>/contract.md, docs/architecture.md` — the
      canonical contracts, **not** the delta. A baseline describes shipped code.
    - `Upstream interfaces:` the shipped `interface.md` paths for that package's dependencies
+   - `Source probes:` `docs/packages/<pkg>/sources/<source>.md` for the section's source, or `none`
    - `Existing design: none` · `Assessment: docs/plans/<slug>/assessment.md`
    - `Write your design to: docs/packages/<pkg>/design/<section>.md`
 
@@ -115,6 +123,9 @@ it is empty, look for the most recent `docs/plans/*/assessment.md` whose plan ha
      docs/packages/<pkg>/contract.md, docs/architecture.md`
    - `Upstream interfaces:` as above — and for a downstream consumer being adapted, the
      provider's `interface.md` *plus* the contract-delta, which says what will change
+   - `Source probes:` as above. When the change alters how a source is parsed and its probe
+     doc is older than the section's README, say in your return that
+     `/project-workers:probe-source <pkg> <source>` should run before `/project-workers:implement-section`
    - `Existing design: docs/packages/<pkg>/design/<section>.md` — including the baseline wave A
      just wrote — or `none` for a section being added
    - `Assessment: docs/plans/<slug>/assessment.md`

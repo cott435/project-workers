@@ -42,6 +42,7 @@ for the qualified name if there is more than one. If `$name` is `surface`, stop 
 | Section README | the README at the section's path in the package contract's Sections table |
 | Dependency READMEs | the README of each section in `Depends on` for `$name` |
 | Upstream interfaces | `docs/packages/<dep>/interface.md` for each package `$pkg` depends on |
+| Source probe | `docs/packages/$pkg/sources/<source>.md` and `<source>.sample.json`, for the `source` in the section's row of the Sections table |
 | **Write your report to** | `docs/reviews/<today's date, YYYY-MM-DD>-<pkg>-<section>.md`, with `$pkg` and `$name` in place of the placeholders |
 
 If the design doc is missing there is no spec to conform to — review for correctness,

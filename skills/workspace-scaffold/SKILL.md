@@ -122,6 +122,8 @@ site_name: <repo>
 docs_dir: docs                       # the planning docs; API pages go under docs/api/
 exclude_docs: |
   plans/**                           # proposal history stays out of the site
+  packages/*/sources/*.json          # probe samples and scripts are data, not pages
+  packages/*/sources/*.py
 theme:
   name: material
 plugins:

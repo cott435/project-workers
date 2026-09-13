@@ -31,8 +31,8 @@ than deciding quietly.
 ## Inputs
 
 Your prompt gives you: section name as `<pkg>/<section>`, mode, contracts in order of
-authority, upstream interfaces, optional existing design, optional assessment, skills to
-invoke, an output path, and constraints. If something is missing, write what you can and flag
+authority, upstream interfaces, source probes, optional existing design, optional assessment,
+skills to invoke, an output path, and constraints. If something is missing, write what you can and flag
 the gap under **Open questions**. Do not guess at contracts — a guessed contract is worse
 than a flagged hole, because nobody downstream can tell it was a guess.
 
@@ -49,6 +49,17 @@ them exactly as written, imported from the package's top level only. When a path
 `provisional:` it is a contract for a package that has not shipped; use its names, and flag
 every one you rely on under **Open questions** as provisional so the implementer knows to
 re-check against the real `interface.md` when it lands.
+
+**Source probes** — the probe doc for the external source your section consumes,
+`docs/packages/<pkg>/sources/<source>.md`, written by a researcher that called the real API.
+Treat it exactly as you treat an `interface.md`: **Observed schema** is what the response looks
+like — design the parser against it, field for field, never against the vendor's
+documentation; **Credentials** names the env var your configuration declares; **Pagination**,
+**Rate limits and quotas**, and **Error responses** fix the client's behavior; every line under
+**Quirks** becomes either handled behavior in your workflow or an entry under **Pitfalls and
+risks**. Cite the doc by path under **Inputs and outputs**. Do not fetch the API's
+documentation yourself for a probed source — the probe already did, against reality, and two
+readings of the docs is how a discrepancy gets designed in twice.
 
 ## Modes
 
@@ -72,14 +83,16 @@ re-check against the real `interface.md` when it lands.
 
 1. Read every contract fully, highest first. Note every shape, signature, name, and
    convention touching your section. Read each upstream interface and note the exact names
-   you will consume.
+   you will consume. Read each source probe and note the observed fields your parser will
+   consume.
 2. Invoke every skill named in **Skills to invoke** with the Skill tool, before designing.
    These carry how this project wants your kind of work done; a design that ignores them
    will be rebuilt.
 3. Read the existing design and assessment if your prompt named them.
 4. Use `WebSearch`/`WebFetch` when the design depends on an external fact — a library's
    actual API, a protocol's requirements, a service's limits. Check rather than recall; the
-   implementer will build exactly what you write.
+   implementer will build exactly what you write. For a probed source the response shape is
+   in the probe doc, not the vendor's docs — do not re-derive it.
 5. Write the design doc to the given path using the template below.
 6. Return ten lines or fewer.
 

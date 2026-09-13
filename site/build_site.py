@@ -4,7 +4,8 @@ Usage:  python3 site/build_site.py [bundle] [--evals evals.json]
 
 `bundle` defaults to the repo root (the parent of this script's directory). Writes
 site/docs/ — every agent and skill as a page with its frontmatter shown as a table, the
-plugin README as the home page, the flow page, the rule and the lint config — then writes
+plugin README as the home page, the flow page, one page per workflow from
+site/workflows/, the rule and the lint config — then writes
 site/mkdocs.yml by appending a generated nav to mkdocs-base.yml.
 
 The nav is generated, so adding a skill or a reference file needs no edit here: re-run this,
@@ -29,10 +30,14 @@ FM_RE = re.compile(r"^---\n(.*?)\n---\n", re.S)
 
 # Reading order for the workflow skills: the order you actually run them, not alphabetical.
 WORKFLOW_ORDER = [
-    "plan-repo", "plan-package", "implement-section", "review-section",
-    "finalize-package", "review-package", "plan-change", "sync-plan",
+    "extract-legacy", "plan-repo", "plan-package", "probe-source", "implement-section",
+    "review-section", "finalize-package", "review-package", "plan-change", "sync-plan",
     "finalize-project", "map-project",
 ]
+
+# Reading order for the workflow pages in site/workflows/ — one page per pipeline. Files not
+# listed here are appended alphabetically, so a new workflow needs no edit to appear.
+WORKFLOWS_ORDER = ["new-repo", "rebuild-from-legacy", "change-shipped-code", "adopt-existing-repo"]
 
 
 def split_frontmatter(text: str) -> tuple[dict[str, str], str]:
@@ -74,11 +79,15 @@ def write_page(rel: str, title: str, fm: dict[str, str], body: str, source: str)
     out.write_text(head + demote(body))
 
 
-def build_nav(agents: list[str], workflow: list[tuple[str, str]],
+def build_nav(agents: list[str], workflows: list[tuple[str, str]],
+              workflow: list[tuple[str, str]],
               knowledge: list[tuple[str, str]], notes: list[tuple[str, str]],
               has_evals: bool) -> str:
     """Generate the nav block from what was actually written."""
     lines = ["nav:", "  - Home (README): index.md", "  - The flow: flow.md"]
+    if workflows:
+        lines.append("  - Workflows:")
+        lines += [f"      - {title}: {path}" for title, path in workflows]
     lines.append("  - Agents:")
     lines += [f"      - {a}: agents/{a}.md" for a in agents]
     lines.append("  - Workflow skills:")
@@ -112,6 +121,9 @@ def main() -> None:
     readme_path = bundle / "README.md"
     if readme_path.exists():
         readme = re.sub(r"^# .*\n", "", readme_path.read_text(), count=1)
+        # README links to site/workflows/*.md for GitHub readers; on the site those pages
+        # sit beside index.md under workflows/.
+        readme = readme.replace("](site/workflows/", "](workflows/")
         (DOCS / "index.md").write_text(
             "# project_workers\n\n*Source: `README.md`*\n\n" + demote(readme))
     else:
@@ -119,6 +131,20 @@ def main() -> None:
 
     shutil.copy(HERE / "flow.md", DOCS / "flow.md")
     shutil.copy(HERE / "extra.css", DOCS / "extra.css")
+
+    # Workflows: one authored page per pipeline in site/workflows/, title from its H1.
+    workflows: list[tuple[str, str]] = []
+    wf_dir = HERE / "workflows"
+    if wf_dir.exists():
+        (DOCS / "workflows").mkdir(exist_ok=True)
+        files = {p.stem: p for p in wf_dir.glob("*.md")}
+        order = [s for s in WORKFLOWS_ORDER if s in files]
+        order += sorted(s for s in files if s not in WORKFLOWS_ORDER)
+        for stem in order:
+            p = files[stem]
+            shutil.copy(p, DOCS / "workflows" / p.name)
+            h1 = next((l for l in p.read_text().splitlines() if l.startswith("# ")), f"# {stem}")
+            workflows.append((h1[2:].strip(), f"workflows/{p.name}"))
 
     # Agents
     agents = []
@@ -183,12 +209,12 @@ def main() -> None:
         (DOCS / "evals.md").write_text("\n".join(lines))
         has_evals = True
 
-    nav = build_nav(agents, ordered, knowledge, notes, has_evals)
+    nav = build_nav(agents, workflows, ordered, knowledge, notes, has_evals)
     (HERE / "mkdocs.yml").write_text((HERE / "mkdocs-base.yml").read_text() + "\n" + nav)
 
     print(f"wrote {sum(1 for _ in DOCS.rglob('*.md'))} pages under {DOCS}")
-    print(f"wrote nav with {len(agents)} agents, {len(ordered)} workflow skills, "
-          f"{len(knowledge)} knowledge pages, {len(notes)} notes")
+    print(f"wrote nav with {len(agents)} agents, {len(workflows)} workflows, "
+          f"{len(ordered)} workflow skills, {len(knowledge)} knowledge pages, {len(notes)} notes")
 
 
 if __name__ == "__main__":

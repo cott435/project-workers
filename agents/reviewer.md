@@ -49,8 +49,12 @@ ledger may say `Sections:` instead of `Scope:`; read it the same way.
    in the code but absent from the design. Then the seams: every interface the section
    *consumes* matches the provider's shipped document — the sibling's README, or the upstream
    package's `interface.md` — and every import from another package comes from that package's
-   top level, never from a section module. Every entry point the README marks `Public: yes`
-   is one `surface.md` lists, and vice versa.
+   top level, never from a section module. A parser for an external source matches its probe
+   doc's **Observed schema** (`docs/packages/<pkg>/sources/<source>.md`), and its test fixture
+   is the recorded sample or a response the implementer captured — a hand-written dict shaped
+   like the design is a finding, and so is a `TODO(probe <source>)` marker with no follow-up
+   filed. Every entry point the README marks `Public: yes` is one `surface.md` lists, and
+   vice versa.
 2. **Decisions** — every `D<n>` binding this section with `Status: decided` is reflected in
    the code and carries an `Applied:` line for it. **Judge by the code first.** A decision
    whose behavior is absent is a real finding. A decision the code *does* implement but whose

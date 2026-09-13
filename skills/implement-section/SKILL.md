@@ -50,6 +50,7 @@ Read all of these that exist. Absence is meaningful in each case, so note which 
 | Review findings | `docs/reviews/` — the most recent `<date>-<pkg>-<section>.md` for this section | No prior review. |
 | Dependency READMEs | the `README.md` at the path of each section in the package contract's `Depends on` for `$name` | **Blocker.** Sections are built in the integration doc's order; name the unbuilt dependency and `/project-workers:implement-section $pkg/<dep>` as the fix. |
 | Upstream interfaces | `docs/packages/<dep>/interface.md` for each package in the repo contract's `Depends on` for `$pkg` | That package is unshipped: if it has code, use its `contract.md` and treat every consumed name as provisional; if it has no code, blocker naming `/project-workers:plan-package <dep>` and its build. |
+| Source probe | `docs/packages/$pkg/sources/<source>.md` and `<source>.sample.json`, for the `source` in this section's row of the package contract's Sections table | Proceed; your step 5 probes the source yourself, and your return says so. |
 
 The contract delta outranks the canonical contracts for anything it names: it is newer by
 construction, and `/project-workers:plan-change` deliberately does not fold it back until the code ships.

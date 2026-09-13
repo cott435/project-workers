@@ -9,10 +9,14 @@ under **Repo contract deviations** in the integration doc.
 1. **Purpose** — one paragraph, and which repo-contract shapes this package provides.
 
 2. **Sections** — table: section | responsibility | path | owner doc | builds with |
-   depends on. Paths are `packages/<pkg>/src/<pkg>/<section>/` (or `src/<pkg>/<section>/` in a
-   single-package repo); owner docs are `docs/packages/<pkg>/design/<section>.md`. `Depends on`
-   names sections in this package only, and must form a DAG — it becomes an import-linter
-   contract and the order `/project-workers:implement-section` enforces.
+   depends on | source. Paths are `packages/<pkg>/src/<pkg>/<section>/` (or `src/<pkg>/<section>/`
+   in a single-package repo); owner docs are `docs/packages/<pkg>/design/<section>.md`.
+   `Depends on` names sections in this package only, and must form a DAG — it becomes an
+   import-linter contract and the order `/project-workers:implement-section` enforces. `source` is the
+   external service the section consumes — one lowercase token, the name
+   `docs/packages/<pkg>/sources/<source>.md` carries — or `—`. `/project-workers:plan-package` probes every
+   source in this column before delegating designers; a service not named here is never
+   probed.
 
 3. **Section interfaces** — per section, what it returns to its dependents, as signatures.
    Reference repo shapes by name; never redefine them. This is where "what each section
