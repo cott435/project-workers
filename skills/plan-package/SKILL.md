@@ -46,9 +46,6 @@ invent its own shapes and conventions, and the next package will invent them dif
 
 1. **Assess.** Survey the package directory if it exists and write
    `docs/packages/$pkg/assessment.md`; on a greenfield package there is nothing to assess.
-   There is no package-level brief to persist — package intent comes entirely from
-   `docs/architecture.md`. To give a package direction the repo contract does not carry, put
-   it there via `/project-workers:plan-repo "<comments>"` before this run, not here.
 
 2. **Survey skills.** Enumerate the project skills per your instructions; the repo contract's
    `candidate skills` column for `$pkg` is the starting point.
