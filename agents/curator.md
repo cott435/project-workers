@@ -36,18 +36,36 @@ modules; the skills your researchers write carry logic, not layout.
 
 1. Confirm the old repo path you were given exists and is not inside this repo's `packages/`.
    Record `git rev-parse --short HEAD` if it is a git repo.
-2. Spawn an `Explore` subagent (thoroughness: very thorough) over the old repo: modules and
-   what each does; entry points and CLIs; every external API or service it talks to and the
-   client code for each; schemas, tables, migrations; parsers and normalizers; validators and
-   business rules; algorithms worth keeping; configuration and the env vars it reads; recorded
-   fixtures and sample data; the test suite and what it actually covers; anything fragile or
-   visibly broken. `Explore` cannot write, so take its report, verify every path it cites with
-   `Read`/`Glob`, and build the inventory yourself.
-3. Group what you found into **resources** — one row per thing a designer or implementer could
-   pick up and use: a client for one external source, one schema, one algorithm, one validator
-   set. A row is a capability named for what it does (`polygon-aggregates`, `bars-schema`,
-   `corporate-actions-adjust`), never for the file it lives in. Group generously: a client, its
-   tests, and its recorded fixtures are one row.
+2. Spawn an `Explore` subagent (thoroughness: very thorough) over the old repo, and ask it to
+   report **by directory** rather than by file or by category: for each directory holding
+   salvageable code, what it collectively does, which external APIs or services it talks to,
+   schemas or tables it defines, parsers, validators, algorithms, config and env vars it reads,
+   recorded fixtures, the tests that cover it, and anything fragile or visibly broken.
+   `Explore` cannot write, so take its report, verify every path it cites with `Read`/`Glob`,
+   and build the inventory yourself from the directory groupings it found.
+3. **Group by directory, not by file.** Directories are already the codebase's grouping
+   signal — files the old author put beside each other almost always form one capability.
+   Default to one row per directory, at the most specific level where the directory is not
+   itself cleanly divisible into further capabilities:
+   - A directory whose files collaborate toward one purpose — a client with its models, its
+     exceptions, its parser — is **one row**, however many files it holds.
+   - When the real content lives a level down, in subdirectories that are each a distinct
+     capability (`sources/polygon/`, `sources/alpaca/`, `sources/fred/`), stop at that lower
+     level: one row per subdirectory, never one row for the parent that swallows all of them.
+   - Fold a mirrored test or fixture directory (`tests/<same relative path>`, a `fixtures/`
+     directory named for the thing it fixtures) into the same row as what it covers — never a
+     separate row for tests alone.
+   - Split one directory into more than one row only when it plainly mixes unrelated
+     purposes — a validator dropped into an API-client folder, a stray script beside a schema.
+     The test: would the user's `keep` decision differ for the two parts? If not, one row.
+   - Loose files with no directory of their own group the same way, by shared purpose, not one
+     row per file.
+   Name each row for the capability, never for the directory path or a filename — the path
+   goes in `old path(s)`. Calibrate against the repo's own directory count: a repo with a few
+   dozen source directories should produce roughly that many rows, not one per file, one per
+   class, or one per function. If your draft is running past thirty or forty rows, you have
+   split past the directory boundary — merge back up before writing the file, not after the
+   user complains.
 4. Read `docs/brief.md` if it exists and fill `suggested` — `yes` or `no` with one reason. The
    brief prunes; it does not decide. Leave `keep` as `?` on every row.
 5. Write the inventory and **stop** with exactly:
@@ -80,8 +98,13 @@ Re-running is idempotent by `status`. A row the user resets to `pending` is pick
 |----|----------|------|-------------|-----------|------|-------|--------|-------|
 | L1 | Polygon aggregates client: pagination, retry, rate-limit backoff | api-client | src/data/polygon.py; tests/test_polygon.py; tests/fixtures/polygon/ | yes — brief names Polygon | ? | | pending | |
 | L2 | DuckDB bars schema + upsert | storage | src/db/schema.sql; src/db/bars.py | yes | ? | | pending | |
-| L3 | Streamlit dashboard | ui | app/ | no — brief has no UI | ? | | pending | |
+| L3 | Tiingo client: client, models, retry, exceptions | api-client | src/vendors/tiingo/ (whole directory); tests/vendors/tiingo/ | yes | ? | | pending | |
+| L4 | Streamlit dashboard | ui | app/ | no — brief has no UI | ? | | pending | |
 ```
+
+L3 is the directory-grouping default: `src/vendors/tiingo/client.py`, `models.py`, and
+`exceptions.py` are three files but one capability, so they are one row citing the directory,
+not three rows citing the files.
 
 - `kind`: `api-client`, `parser`, `schema`, `algorithm`, `validator`, `config`, `fixture`,
   `test-suite`, `ui`, `other`.
